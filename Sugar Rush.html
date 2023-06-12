@@ -1,0 +1,811 @@
+<!--Made by Tomasz, Alexander, and Sahat-->
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Sugar Rush</title>
+<style>
+
+body {
+    background-color: black;
+    color: white;
+    font-family: "Times New Roman", Times, serif;
+}
+
+html, body {
+margin: 0; padding: 0;
+}
+
+.animated-background {
+background: gray url(https://blog.sklambert.com/wp-content/uploads/2012/09/bg.png) repeat 0 0;
+width: 100%;
+margin: 0;
+text-align: center;
+height: 600px;
+width: 1000px;
+padding-top: 0px;
+box-sizing: border-box;
+-webkit-animation: slide 20s linear infinite;
+}
+
+@-webkit-keyframes slide {
+  from { background-position: 0 0; }
+  to { background-position:  0px 12000px; }
+}
+
+#over {
+    position:absolute;
+    top:45%;
+    left:50%;
+    transform: translate(-50%, -50%);
+
+}
+
+#scoreScreen{
+    font-family: 'Press Start 2P', cursive;
+    font-size: 20
+}
+#endScreen {
+  text-align: center;
+}
+#scoreScreen {
+  text-align: center;
+}
+#playAgain {
+    position: absolute;
+    height:60;
+    top:81%;
+    right:17%;
+    transform: translate(-50%, -50%);
+}
+#back {
+    position: absolute;
+    height:22%;
+    top:81%;
+    left: 23%;
+    transform: translate(-50%, -50%);
+}
+* { padding: 0; margin: 0; }
+
+canvas { background: url('bg.png');
+display: block;
+margin: 0 auto;
+background-size:fill;}
+
+</style>
+</head>
+<body>
+
+<embed src="Game Music.mp3" autostart="true" loop="true" width="0" height="0">
+
+<p id=over></p>
+
+<p id="endScreen"></p>
+<p id="scoreScreen">Score: 0</p>
+
+
+<center>
+<canvas id="myCanvas" class="animated-background" width="1000" height="600"></canvas> <!-- width="480" height="320" -->
+</center>
+<script>
+
+  var canvas = document.getElementById("myCanvas");
+  var ctx = canvas.getContext("2d");
+
+  var x = canvas.width/2;
+  var y = canvas.height/2;
+  // var radius = 10;
+
+  var d = 2.3;
+  var score = 0;
+  var firstTime = true;
+
+  var backCount = 0; //counts until the asteroid fires back
+  var newRectX4;
+  var newRectY4;
+
+  var up = false;
+  var down = false;
+  var right = false;
+  var left = false;
+  var rightUp = false;
+  var rightDown = false;
+  var leftUp = false;
+  var leftDown = false;
+
+  var big = new Image(100, 200);
+  big.src = 'AsteroidBig.gif';
+  var medium = new Image(100,200);
+  medium.src = "AsteroidMedium.gif";
+  var larger = new Image(100,200);
+  larger.src = "AsteroidSmall.png";
+
+
+  var moveYRule1; //if the asteroid is above the canvas, it must travel downwards
+  var movexRule1;  //if the asteroid is to the left of the canvas, it must travel right
+  var xyValue = xyDirection(); //decides whether the asteroid come from top/botton or left/right
+
+  var time1 = 0; //tracks the time so the first asteroid can be reset
+  var time2 = 0; //tracks the time so the second asteroid can be reset
+  var time3 = 0; //tracks the time so the third asteroid can be reset
+  var time4 = 0; //tracks the time so the fourth asteroid can be reset
+  var time5 = 0; //tracks the time so the fifth asteroid can be reset
+  var time6 = 0; //tracks the time so the sixth asteroid can be reset
+  var time7 = 0;
+  var time8 = 0;
+  var time9 = 0;
+  var time10 = 0;
+  var time11 = 0;
+  var time12 = 0;
+  var scoreTime = 0; //indicates when to increase score
+  var timeReset4 = 0;
+
+var background = new Image();
+background.src = "space.jpeg";
+
+// Make sure the image is loaded first otherwise nothing will draw.
+background.onload = function(){
+    ctx.drawImage(background,0,0);
+}
+
+  function scoreFunction() {
+    score = score+1;
+    document.getElementById("scoreScreen").innerHTML = document.getElementById("scoreScreen").innerHTML.substring(0,7) + score;
+  }
+
+  function xyDirection() {
+    return Math.floor(Math.random()*2); //decides whether the asteroid come from top/botton or left/right
+    //0 is top/bottom and 1 is left/right
+  }
+
+  function randomY() {
+    var position; //determines whether the asteroid is above or below the canvas
+    var n;
+    if (xyValue==0) {
+       n = Math.floor(Math.random()*2);
+       if (n==0) {
+         position = -50;
+         moveYRule1 = "above";
+       } else {
+         position = canvas.height;
+         moveYRule1 = "below";
+       }
+    } else {
+         n = Math.floor(Math.random()*(canvas.height-50));
+         position = n;
+    }
+    return position;
+  }
+
+  function randomX() {
+    var position; //determines whether the asteroid is above or below the canvas
+    var n;
+    if (xyValue==1) {
+       n = Math.floor(Math.random()*2);
+       if (n==0) {
+         position = -50;
+         movexRule1 = "left";
+       } else {
+         position = canvas.width;
+         movexRule1 = "right";
+       }
+    } else {
+         n = Math.floor(Math.random()*(canvas.width-50));
+         position = n;
+    }
+    return position;
+  }
+
+  function randomRectMoveX() {
+    var n = Math.random()*4-2;
+    if (movexRule1 == "left") {
+      while (n < 0.7) { //needs a value going up
+        n = Math.random()*4-2;
+      }
+    } else if (movexRule1 == "right" ) { //check!!!!
+        while (n > -0.7) { //needs a value going down
+          n = Math.random()*4-2;
+      }
+    } else {
+      while (n > -0.7 && n < 0.7) { //value can go up and down
+        n = Math.random()*4-2;
+      }
+    }
+    return n;
+  }
+
+  function randomRectMoveY() {
+    var n = Math.random()*4-2;
+    if (moveYRule1 == "above") {
+      while (!(n > 0.7)) { //needs a value going down
+        n = Math.random()*4-2;
+      }
+    } else if (moveYRule1 == "below") {
+      while (!(n < -0.7)) { //needs a value going up
+        n = Math.random()*4-2;
+      }
+    } else {
+      while ((n > -0.7 && n < 0.7)) {
+        n = Math.random()*4-2;
+      }
+    }
+    return n;
+  }
+
+  function timeReset() {
+    return Math.random()*300+1000;
+  }
+
+  var loopTime = 0; //counts the time until a new asteroid needs to be created
+  loopTime = loopTime+1;
+  var crtCount = 1; //counts the number of asteriods created
+
+  // if (loopTime==1000) {
+  //   window["rectX"+crtCount] = randomX();
+  //   window["rectY"+crtCount] = randomY();
+  //   window["rectMoveX"+crtCount] = randomRectMoveX();
+  //   window["rectMoveY"+crtCount] = randomRectMoveY();
+  //   xyDirection();
+  //   crtCount = crtCount+1;
+  // }
+
+  var rectX1 = randomX();
+  var rectY1 = randomY();
+  var rectMoveX1 = randomRectMoveX();
+  var rectMoveY1 = randomRectMoveY();
+  xyDirection();
+  var rectX2 = randomX();
+  var rectY2 = randomY();
+  var rectMoveX2 = randomRectMoveX();
+  var rectMoveY2 = randomRectMoveY();
+  xyDirection();
+  var rectX3 = randomX();
+  var rectY3 = randomY();
+  var rectMoveX3 = randomRectMoveX();
+  var rectMoveY3 = randomRectMoveY();
+  xyDirection();
+  var rectX4 = randomX();
+  var rectY4 = randomY();
+  var rectMoveX4 = randomRectMoveX();
+  var rectMoveY4 = randomRectMoveY();
+  xyDirection();
+  var rectX5 = randomX();
+  var rectY5 = randomY();
+  var rectMoveX5 = randomRectMoveX();
+  var rectMoveY5 = randomRectMoveY();
+  xyDirection();
+  var rectX6 = randomX();
+  var rectY6 = randomY();
+  var rectMoveX6 = randomRectMoveX();
+  var rectMoveY6 = randomRectMoveY();
+  xyDirection();
+  var rectX7 = randomX();
+  var rectY7 = randomY();
+  var rectMoveX7 = randomRectMoveX();
+  var rectMoveY7 = randomRectMoveY();
+  xyDirection();
+  var rectX8 = randomX();
+  var rectY8 = randomY();
+  var rectMoveX8 = randomRectMoveX();
+  var rectMoveY8 = randomRectMoveY();
+  xyDirection();
+  var rectX9 = randomX();
+  var rectY9 = randomY();
+  var rectMoveX9 = randomRectMoveX();
+  var rectMoveY9 = randomRectMoveY();
+  xyDirection();
+  var rectX10 = randomX();
+  var rectY10 = randomY();
+  var rectMoveX10 = randomRectMoveX();
+  var rectMoveY10 = randomRectMoveY();
+  xyDirection();
+  var rectX11 = randomX();
+  var rectY11 = randomY();
+  var rectMoveX11 = randomRectMoveX();
+  var rectMoveY11 = randomRectMoveY();
+  xyDirection();
+  var rectX12 = randomX();
+  var rectY12 = randomY();
+  var rectMoveX12 = randomRectMoveX();
+  var rectMoveY12 = randomRectMoveY();
+
+  var gameOver = false;
+
+  document.addEventListener("keydown", keyDownHandler, false);
+  document.addEventListener("keyup", keyUpHandler, false);
+
+  var boost=0; //boost time
+
+  var cooldown = 300; //boost cooldown
+
+  function cooldownCounter() {
+    cooldown=cooldown+1;
+  }
+  cooldownCounter()
+
+  function keyDownHandler(e) {
+    if (e.key == "Right" || e.key == "ArrowRight") {
+        right = true;
+    } else if (e.key == "Left" || e.key == "ArrowLeft") {
+          left = true;
+    } else if (e.key == "Up" || e.key == "ArrowUp") {
+          up = true;
+    } else if (e.key == "Down" || e.key == "ArrowDown") {
+          down = true;
+    }
+    if (e.key == " "&&cooldown>300) {
+      d = 7;
+      startCooldown = true;
+    }
+  }
+
+  function keyUpHandler(e) {
+    if (e.key == "Right" || e.key == "ArrowRight") {
+        right = false;
+    } else if (e.key == "Left" || e.key == "ArrowLeft") {
+        left = false;
+    } else if (e.key == "Up" || e.key == "ArrowUp") {
+        up = false;
+    } else if (e.key == "Down" || e.key == "ArrowDown") {
+        down = false;
+    }
+    if (e.key == " ") {
+      boost=0;
+      d = 2.3;
+      if (startCooldown) {
+        cooldown=0;
+        startCooldown=false;
+
+      }
+    }
+  }
+  
+  function drawShip() { //draws the ship
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.rect(x, y, 60, 60);
+    ctx.fillStyle = 'transparent';
+    ctx.fill();
+    var ship = new Image(100, 200);
+      ship.src = 'ship.png';
+      ctx.drawImage(ship, x-20, y-10, 100, 80);
+    ctx.closePath();
+  }
+
+  var rectXR1 = 80;
+  var rectYR1 = 100;
+  var rectXR2 = 50;
+  var rectYR2 = 50;
+  var rectXR3 = 50;
+  var rectYR3 = 50;
+  var rectXR4 = 110;
+  var rectYR4 = 120;
+  var rectXR5 = 180;
+  var rectYR5 = 100;
+  var rectXR6 = 50;
+  var rectYR6 = 50;
+  var rectXR7 = 50;
+  var rectYR7 = 50;
+  var rectXR8 = 50;
+  var rectYR8 = 50;
+
+  var rectXR9 = 80; // missing?
+  var rectYR9 = 80;
+
+  var rectXR10 = 40;
+  var rectYR10 = 60;
+  var rectXR11 = 100;
+  var rectYR11 = 80;
+  var rectXR12 = 50;
+  var rectYR12 = 50;
+
+  var berryXR = 30;
+  var berryYR = 30;
+
+  function drawAsteroid() {
+    ctx.beginPath();
+    ctx.rect(rectX1, rectY1, rectXR1, rectYR1);
+    ctx.fillStyle = "transparent"; //#ededed
+    ctx.fill();
+    ctx.drawImage(big, rectX1-30, rectY1-20, 130, 130);
+    ctx.closePath();
+    rectX1 = rectX1+rectMoveX1;
+    rectY1 = rectY1+rectMoveY1;
+
+    if (score>100) {
+      ctx.beginPath();
+      ctx.rect(rectX2, rectY2, rectXR2, rectYR2);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      ctx.drawImage(medium, rectX2-40, rectY2-50);
+      ctx.closePath();
+      rectX2 = rectX2+rectMoveX2;
+      rectY2 = rectY2+rectMoveY2;
+    }
+
+    if (score>200) {
+      ctx.beginPath();
+      ctx.rect(rectX3, rectY3, rectXR3, rectYR3);
+      ctx.fillStyle = "transparent";
+      ctx.drawImage(larger, rectX3-50, rectY3-50, 150, 150);//this image appeared larger during earlier build ver, but is now smaller
+      ctx.fill();
+      ctx.closePath();
+      rectX3 = rectX3+rectMoveX3;
+      rectY3 = rectY3+rectMoveY3;
+    }
+
+    if (score>300) { //original is 300
+      // if (rectX4>0&&rectX4<canvas.width&&rectY4>0&&rectY4<canvas.height) {
+      //   backCount = backCount + 1;
+      // }
+      ctx.beginPath();
+      ctx.rect(rectX4, rectY4, rectXR4, rectYR4);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      var cupcake = new Image(100, 200);
+      cupcake.src = 'CupcakeMonster.gif';
+      ctx.drawImage(cupcake, rectX4-30, rectY4-20, 175, 160);
+      ctx.closePath();
+      if (!firstTime&&time4<=80) {
+        newRectX4 = rectX4;
+        newRectY4 = rectY4;
+      }
+      if (time4>180) { //80
+        if (time4==181) { //so the coordinates of the original rect are only gotten at the beginning
+          newRectX4 = rectX4;
+          newRectY4 = rectY4;
+        } else {
+          newRectX4 = newRectX4-(rectMoveX4/2);
+          newRectY4 = newRectY4-(rectMoveY4/2);
+        }
+        ctx.beginPath();
+        ctx.rect(newRectX4, newRectY4, berryXR, berryYR);
+        ctx.fillStyle = "transparent";
+        ctx.fill();
+        var berry = new Image(100, 200);
+        berry.src = 'CupcakeStrawberry.png';
+        ctx.drawImage(berry, newRectX4-45, newRectY4-40, 130, 110);
+        ctx.closePath();
+      }
+      if (time4>timeReset4) {
+        firstTime = false;
+        // ctx.beginPath();
+        // ctx.rect(newRectX4, newRectY4, 50, 50);
+        // ctx.fillStyle = "transparent";
+        // ctx.fill();
+        // ctx.closePath();
+      }
+      rectX4 = rectX4+rectMoveX4;
+      rectY4 = rectY4+rectMoveY4;
+    }
+
+    if (score>500) { //500
+
+      ctx.beginPath();
+      ctx.rect(rectX5, rectY5, rectXR5, rectYR5);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      var head = new Image(100, 200);
+      head.src = 'MarshmallowCatHead.png';
+      ctx.drawImage(head, rectX5-130, rectY5-165);
+      ctx.closePath();
+      rectX5 = rectX5+rectMoveX5;
+      rectY5 = rectY5+rectMoveY5;
+    }
+
+    if (score>600) {
+      ctx.beginPath();
+      ctx.rect(rectX6, rectY6, rectXR6, rectYR6);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      var chocolate = new Image(100, 200);
+      chocolate.src = 'ChocolateBarMonster.png';
+      ctx.drawImage(chocolate, rectX6-130, rectY6-120);
+      ctx.closePath();
+      rectX6 = rectX6+rectMoveX6;
+      rectY6 = rectY6+rectMoveY6;
+    }
+
+    if (score>600) { //double 600
+      ctx.beginPath();
+      ctx.rect(rectX7, rectY7, rectXR7, rectYR7);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      ctx.drawImage(medium, rectX2-40, rectY2-50);
+      ctx.closePath();
+      rectX7 = rectX7+rectMoveX7;
+      rectY7 = rectY7+rectMoveY7;
+    }
+
+    if (score>700) {
+      ctx.beginPath();
+      ctx.rect(rectX8, rectY8, rectXR8, rectYR8);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      ctx.drawImage(medium, rectX2-40, rectY2-50);
+      ctx.closePath();
+      rectX8 = rectX8+rectMoveX8;
+      rectY8 = rectY8+rectMoveY8;
+    }
+
+    if (score>800) { //800
+      ctx.beginPath();
+      ctx.rect(rectX9-(rectMoveX9*60), rectY9-(rectMoveY9*60), rectXR9, rectYR9); //separate case
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      var body = new Image(100, 200);
+      body.src = 'MarshmallowCatBody.png';
+      ctx.drawImage(body, rectX9-(rectMoveX9*60)-130, rectY9-(rectMoveY9*60)-160);
+      ctx.closePath();
+
+      ctx.beginPath();
+      ctx.rect(rectX9, rectY9, rectXR9, rectYR9);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      var head = new Image(100, 200);
+      head.src = 'MarshmallowCatHead.png';
+      ctx.drawImage(head, rectX9-130, rectY9-165);
+      ctx.closePath();
+
+      rectX9 = rectX9+rectMoveX9;
+      rectY9 = rectY9+rectMoveY9;
+    }
+
+    // if (score>800) {
+    //   ctx.beginPath();
+    //   ctx.rect(rectX9, rectY9, 50, 50);
+    //   ctx.fillStyle = "grey";
+    //   ctx.fill();
+    //   ctx.closePath();
+    //   rectX9 = rectX9+rectMoveX9;
+    //   rectY9 = rectY9+rectMoveY9;
+    // }
+
+    if (score>900) {
+      ctx.beginPath();
+      ctx.rect(rectX10, rectY10, rectXR10, rectYR10);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      var chocolate = new Image(100, 200);
+      chocolate.src = 'ChocolateBarMonster.png';
+      ctx.drawImage(chocolate, rectX10-130, rectY10-120);
+      ctx.closePath();
+      rectX10 = rectX10+rectMoveX10;
+      rectY10 = rectY10+rectMoveY10;
+    }
+
+    if (score>1000) {
+     ctx.beginPath();
+    ctx.rect(rectX11, rectY11, rectXR11, rectYR11);
+    ctx.fillStyle = "transparent"; //#ededed
+    ctx.fill();
+    ctx.drawImage(big, rectX11-30, rectY11-40);
+    ctx.closePath();
+    rectX1 = rectX11+rectMoveX11;
+    rectY1 = rectY11+rectMoveY11;
+    }
+
+    if (score>1100) {
+      ctx.beginPath();
+      ctx.rect(rectX12, rectY12, rectXR12, rectYR12);
+      ctx.fillStyle = "transparent";
+      ctx.fill();
+      ctx.drawImage(head, rectX12-130, rectY12-165);
+      ctx.closePath();
+     rectX12 = rectX12+rectMoveX12;
+     rectY12 = rectY12+rectMoveY12;
+   }
+
+    time1 = time1+1;
+    time2 = time2+1;
+    time3 = time3+1;
+    time4 = time4+1;
+    time5 = time5+1;
+    time6 = time6+1;
+    time7 = time7+1;
+    time8 = time8+1;
+    time9 = time9+1;
+    time10 = time10+1;
+    time11 = time11+1;
+    time12 = time12+1;
+
+    scoreTime = scoreTime+1;
+    if (time1>timeReset()) {
+      time1 = 0;
+      rectX1 = randomX();
+      rectY1 = randomY();
+      rectMoveX1 = randomRectMoveX();
+      rectMoveY1 = randomRectMoveY();
+      xyValue = xyDirection();
+    }
+    if (score>100) {
+      if (time2>timeReset()) {
+        time2 = 0;
+        rectX2 = randomX();
+        rectY2 = randomY();
+        rectMoveX2 = randomRectMoveX();
+        rectMoveY2 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>200) {
+      if (time3>timeReset()) {
+        time3 = 0;
+        rectX3 = randomX();
+        rectY3 = randomY();
+        rectMoveX3 = randomRectMoveX();
+        rectMoveY3 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>300) {
+      timeReset4 = timeReset(); //so the timeReset can be also used for the asteroid going back
+      if (time4>timeReset4) {
+        firstTime = false;
+        time4 = 0;
+        rectX4 = randomX();
+        rectY4 = randomY();
+        rectMoveX4 = randomRectMoveX();
+        rectMoveY4 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>400) {
+      if (time5>timeReset()) {
+        time5 = 0;
+        rectX5 = randomX();
+        rectY5 = randomY();
+        rectMoveX5 = randomRectMoveX();
+        rectMoveY5 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+      if (score>500) {
+        if (time6>timeReset()) {
+          time6 = 0;
+          rectX6 = randomX();
+          rectY6 = randomY();
+          rectMoveX6 = randomRectMoveX();
+          rectMoveY6 = randomRectMoveY();
+          xyValue = xyDirection();
+        }
+    }
+    if (score>600) { //******
+      if (time7>timeReset()) {
+        time7 = 0;
+        rectX7 = randomX();
+        rectY7 = randomY();
+        rectMoveX7 = randomRectMoveX();
+        rectMoveY7 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>700) {
+      if (time8>timeReset()) {
+        time8 = 0;
+        rectX8 = randomX();
+        rectY8 = randomY();
+        rectMoveX8 = randomRectMoveX();
+        rectMoveY8 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>800) {
+      if (time9>timeReset()) {
+        time9 = 0;
+        rectX9 = randomX();
+        rectY9 = randomY();
+        rectMoveX9 = randomRectMoveX();
+        rectMoveY9 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>900) {
+      if (time10>timeReset()) {
+        time10 = 0;
+        rectX10 = randomX();
+        rectY10 = randomY();
+        rectMoveX10 = randomRectMoveX();
+        rectMoveY10 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>1000) {
+      if (time10>timeReset()) {
+        time10 = 0;
+        rectX10 = randomX();
+        rectY10 = randomY();
+        rectMoveX10 = randomRectMoveX();
+        rectMoveY10 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (score>1100) {
+      if (time10>timeReset()) {
+        time10 = 0;
+        rectX10 = randomX();
+        rectY10 = randomY();
+        rectMoveX10 = randomRectMoveX();
+        rectMoveY10 = randomRectMoveY();
+        xyValue = xyDirection();
+      }
+    }
+    if (scoreTime==15) {
+      scoreTime = 0;
+      scoreFunction()
+    }
+  }
+
+  function gameOverFunction() {
+    for (var i=1;i<13;i++) {
+      if (x+60>window["rectX"+i]&&x<window["rectX"+i]+window["rectXR"+i]&&y+60>window["rectY"+i]&&y<window["rectY"+i]+window["rectYR"+i]) {
+        document.getElementById("over").innerHTML = "<img src=\"GameOver.png\" >";
+        gameOver = true;
+      }
+      // checks the first cat's body
+      if (x+60>rectX5-(rectMoveX5*60)&&x<rectX5-(rectMoveX5*60)+rectXR5&&y+60>rectY5-(rectMoveY5*60)&&y<rectY5-(rectMoveY5*60)+rectYR5) {
+        document.getElementById("over").innerHTML = "<img src=\"GameOver.png\" >";
+        gameOver = true;
+      }
+      // checks the second cat's body
+      if (x+60>rectX9-(rectMoveX9*60)&&x<rectX9-(rectMoveX9*60)+rectXR9&&y+60>rectY9-(rectMoveY9*60)&&y<rectY9-(rectMoveY9*60)+rectYR9) {
+        document.getElementById("over").innerHTML = "<img src=\"GameOver.png\" >";
+        gameOver = true;
+      }
+      // checks the strawberry
+      if (x+60>newRectX4&&x<newRectX4+berryXR&&y+60>newRectY4&&y<newRectY4+berryYR) {
+        document.getElementById("over").innerHTML = "<img src=\"GameOver.png\" >";
+                gameOver = true;
+              }
+            }
+
+    // if ((x+50>rectX1 && x<rectX1+50 && y>rectY1 && y<rectY1+50)||(x>rectX2 && x<rectX2+50 && y>rectY2 && y<rectY2+50)
+    // ||(x>rectX3 && x<rectX3+50 && y>rectY3 && y<rectY3+50)||(x>rectX4 && x<rectX4+50 && y>rectY4 && y<rectY4+50)
+    // ||(x>rectX5 && x<rectX5+50 && y>rectY5 && y<rectY5+50)||(x>rectX6 && x<rectX6+50 && y>rectY6 && y<rectY6+50)
+    // ||(x>rectX7 && x<rectX7+50 && y>rectY7 && y<rectY7+50)||(x>rectX8 && x<rectX8+50 && y>rectY8 && y<rectY8+50)
+    // ||(x>rectX9 && x<rectX9+50 && y>rectY9 && y<rectY9+50)||(x>rectX10 && x<rectX10+50 && y>rectY10 && y<rectY10+50)
+    // ||(x>rectX11 && x<rectX11+50 && y>rectY11 && y<rectY11+50)||(x>rectX12 && x<rectX12+50 && y>rectY12 && y<rectY12+50)) {
+    //   document.getElementById("endScreen").innerHTML = "Game Over";
+    //   gameOver = true;
+    // }
+  }
+
+  function draw() {
+    if (!gameOver) {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawShip();
+    drawAsteroid();
+    gameOverFunction()
+
+    if (right &&  up && x+60 < canvas.width && y > 0) {
+      y = y-d;
+      x = x+d;
+    } else if (right && down && x+60 < canvas.width && y+60 < canvas.height) {
+      y = y+d;
+      x = x+d;
+    } else if (left && up && x > 0 && y > 0) {
+      y = y-d;
+      x = x-d;
+    } else if (left && down && x > 0 && y+60 < canvas.height) {
+      y = y+d;
+      x = x-d;
+    } else if (right && x+60 < canvas.width) {
+      x = x+d;
+    } else if (left && x > 0) {
+      x = x-d;
+    } else if (up && y > 0) {
+      y = y-d;
+    } else if (down && y+60 < canvas.height) {
+      y = y+d;
+    }
+
+    }
+  }
+
+  setInterval(draw, 1);
+
+</script>
+<input type="image" id=back src="BackButton.png" onclick="location.href='Sugar Rush Homepage.html'"/>
+<input type="image" id=playAgain src="tryAgain.png" onclick="location.href='Sugar Rush.html'"/>
+</body>
+</html>
